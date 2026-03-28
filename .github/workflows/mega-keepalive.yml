@@ -44,9 +44,14 @@ jobs:
           set -euo pipefail
           probe_name="codex-keepalive-$(date +%s).txt"
           probe_path="$(mktemp)"
+          if [ "${MEGA_PATH}" = "/" ]; then
+            remote_probe="/${probe_name}"
+          else
+            remote_probe="${MEGA_PATH%/}/${probe_name}"
+          fi
           printf 'keepalive %s\n' "$(date -u +%FT%TZ)" > "${probe_path}"
-          mega-put "${probe_path}" "${MEGA_PATH}/${probe_name}"
-          mega-rm "${MEGA_PATH}/${probe_name}"
+          mega-put "${probe_path}" "${remote_probe}"
+          mega-rm "${remote_probe}"
           rm -f "${probe_path}"
 
       - name: Logout
