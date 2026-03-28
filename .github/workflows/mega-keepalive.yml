@@ -15,6 +15,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
+          sudo mkdir -p /etc/apt/keyrings
+          curl -fsSL https://mega.nz/linux/repo/xUbuntu_24.04/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/meganz.gpg
+          echo "deb [signed-by=/etc/apt/keyrings/meganz.gpg] https://mega.nz/linux/repo/xUbuntu_24.04/ ./" | sudo tee /etc/apt/sources.list.d/meganz.list
+          sudo apt-get update
           sudo apt-get install -y megacmd
 
       - name: Verify required secrets
