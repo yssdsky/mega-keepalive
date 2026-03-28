@@ -1,0 +1,50 @@
+name: MEGA Keepalive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 0 * * *"
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MEGA_PATH: /
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y megacmd
+
+      - name: Verify required secrets
+        env:
+          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
+          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "${MEGA_EMAIL}"
+          test -n "${MEGA_PASSWORD}"
+
+      - name: Login and verify MEGA access
+        env:
+          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
+          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mega-login "${MEGA_EMAIL}" "${MEGA_PASSWORD}"
+          mega-ls "${MEGA_PATH}"
+
+      - name: Upload and delete a probe file
+        run: |
+          set -euo pipefail
+          probe_name="codex-keepalive-$(date +%s).txt"
+          probe_path="$(mktemp)"
+          printf 'keepalive %s\n' "$(date -u +%FT%TZ)" > "${probe_path}"
+          mega-put "${probe_path}" "${MEGA_PATH}/${probe_name}"
+          mega-rm "${MEGA_PATH}/${probe_name}"
+          rm -f "${probe_path}"
+
+      - name: Logout
+        if: always()
+        run: mega-logout || true
