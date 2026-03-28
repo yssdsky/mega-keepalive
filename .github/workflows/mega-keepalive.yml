@@ -99,8 +99,26 @@ jobs:
         if: always()
         run: mega-logout || true
 
+      - name: Check failure email config
+        if: ${{ failure() }}
+        id: notify_config
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_TO: ${{ secrets.SMTP_TO }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+        run: |
+          set -euo pipefail
+          if [ -n "${SMTP_SERVER}" ] && [ -n "${SMTP_PORT}" ] && [ -n "${SMTP_USERNAME}" ] && [ -n "${SMTP_PASSWORD}" ] && [ -n "${SMTP_TO}" ] && [ -n "${SMTP_FROM}" ]; then
+            echo "enabled=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Send failure email
-        if: ${{ failure() && secrets.SMTP_SERVER != '' && secrets.SMTP_PORT != '' && secrets.SMTP_USERNAME != '' && secrets.SMTP_PASSWORD != '' && secrets.SMTP_TO != '' && secrets.SMTP_FROM != '' }}
+        if: ${{ failure() && steps.notify_config.outputs.enabled == 'true' }}
         uses: dawidd6/action-send-mail@v6
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
