@@ -1,24 +1,32 @@
-# MEGA Keepalive
+# Automation Workflows
 
-Minimal GitHub Actions workflow for MEGA account keepalive.
+Minimal GitHub Actions workflows for MEGA keepalive and fork sync.
 
-## What it does
+## Workflows
 
+### MEGA Keepalive
 - Logs in to MEGA
 - Lists `/`
 - Uploads a tiny probe file
 - Deletes the probe file
-- Syncs source snapshots for:
-  - `slotopol/server` -> `server-slots/latest.tar.gz`
-  - `slotopol/bot` -> `bot/latest.tar.gz`
 - Sends a failure email when SMTP secrets are configured
 
-## Required GitHub Actions secrets
+### Sync Forks
+- Syncs `yssdsky/server-slots` with `slotopol/server`
+- Syncs `yssdsky/bot` with `slotopol/bot`
+- Sends a failure email when SMTP secrets are configured
 
+## Required secrets
+
+### For MEGA Keepalive
 - `MEGA_EMAIL`
 - `MEGA_PASSWORD`
 
-## Optional GitHub Actions secrets
+### For Sync Forks
+- `FORK_SYNC_TOKEN`
+  - should be a GitHub PAT that can update `yssdsky/server-slots` and `yssdsky/bot`
+
+## Optional secrets
 
 - `SMTP_SERVER`
 - `SMTP_PORT`
@@ -27,16 +35,13 @@ Minimal GitHub Actions workflow for MEGA account keepalive.
 - `SMTP_TO`
 - `SMTP_FROM`
 
-## Optional GitHub Actions variables
+## Optional variables
 
 - `MEGA_PATH`
   - default: `/`
-- `MEGA_SYNC_ROOT`
-  - default: `/source-sync`
-  - if `MEGA_PATH` is not `/`, default becomes `<MEGA_PATH>/source-sync`
 
 ## Run
 
 - Push this repository to GitHub
 - Add the repository secrets in repository settings
-- Open `Actions` and run `MEGA Keepalive`, or wait for the daily schedule
+- Open `Actions` and run either workflow manually, or wait for the daily schedules

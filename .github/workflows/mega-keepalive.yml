@@ -11,7 +11,6 @@ jobs:
     timeout-minutes: 15
     env:
       MEGA_PATH: ${{ vars.MEGA_PATH }}
-      MEGA_SYNC_ROOT: ${{ vars.MEGA_SYNC_ROOT }}
     steps:
       - name: Install dependencies
         run: |
@@ -57,44 +56,6 @@ jobs:
           mega-rm "${remote_probe}"
           rm -f "${probe_path}"
 
-      - name: Sync source repositories to MEGA
-        run: |
-          set -euo pipefail
-          export MEGA_PATH="${MEGA_PATH:-/}"
-          export MEGA_SYNC_ROOT="${MEGA_SYNC_ROOT:-}"
-
-          if [ -z "${MEGA_SYNC_ROOT}" ]; then
-            if [ "${MEGA_PATH}" = "/" ]; then
-              MEGA_SYNC_ROOT="/source-sync"
-            else
-              MEGA_SYNC_ROOT="${MEGA_PATH%/}/source-sync"
-            fi
-          fi
-
-          workdir="$(mktemp -d)"
-          cleanup() {
-            rm -rf "${workdir}"
-          }
-          trap cleanup EXIT
-
-          sync_repo() {
-            local label="$1"
-            local url="$2"
-            local repo_dir="${workdir}/${label}"
-            local archive_path="${workdir}/${label}.tar.gz"
-            local remote_dir="${MEGA_SYNC_ROOT%/}/${label}"
-            local remote_archive="${remote_dir}/latest.tar.gz"
-
-            git clone --depth 1 "${url}" "${repo_dir}"
-            tar --exclude-vcs -czf "${archive_path}" -C "${repo_dir}" .
-            mega-mkdir -p "${remote_dir}"
-            mega-rm "${remote_archive}" >/dev/null 2>&1 || true
-            mega-put "${archive_path}" "${remote_archive}"
-          }
-
-          sync_repo "server-slots" "https://github.com/slotopol/server"
-          sync_repo "bot" "https://github.com/slotopol/bot"
-
       - name: Logout
         if: always()
         run: mega-logout || true
@@ -134,4 +95,4 @@ jobs:
             Branch: ${{ github.ref_name }}
             Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            The MEGA keepalive or repository sync job failed.
+            The MEGA keepalive job failed.
