@@ -3,7 +3,7 @@ name: MEGA Keepalive
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 0 * * *"
+    - cron: "17 0 */5 * *"
 
 jobs:
   keepalive:
